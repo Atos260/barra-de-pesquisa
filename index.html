@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa Shopee</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+
+        .search-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .search-input {
+            width: 300px;
+            padding: 10px;
+            border: 2px solid #007bff;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .search-results {
+            margin-top: 20px;
+            text-align: left;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .product {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 200px;
+        }
+
+        .product img {
+            width: 100%;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Pesquisar na Shopee</h2>
+    
+    <div class="search-container">
+        <input type="text" id="search" class="search-input" placeholder="Digite o produto..." onkeyup="buscarProduto()">
+    </div>
+
+    <div id="resultados" class="search-results"></div>
+
+    <script>
+        async function buscarProduto() {
+            let termo = document.getElementById("search").value;
+            let resultados = document.getElementById("resultados");
+
+            if (termo.trim() === "") {
+                resultados.innerHTML = "";
+                return;
+            }
+
+            resultados.innerHTML = "🔎 Buscando...";
+
+            try {
+                let resposta = await fetch(`https://shopee.com.br/api/v4/search/search_items?keyword=${encodeURIComponent(termo)}`);
+                let dados = await resposta.json();
+
+                if (!dados.items || dados.items.length === 0) {
+                    resultados.innerHTML = "Nenhum produto encontrado.";
+                    return;
+                }
+
+                resultados.innerHTML = "";
+                dados.items.slice(0, 10).forEach(item => {
+                    let produto = document.createElement("div");
+                    produto.classList.add("product");
+                    produto.innerHTML = `
+                        <img src="https://cf.shopee.com.br/file/${item.image}" alt="${item.name}">
+                        <p><strong>${item.name}</strong></p>
+                        <p>R$ ${item.price / 100000}</p>
+                        <a href="https://shopee.com.br/product/${item.shopid}/${item.itemid}" target="_blank">Ver na Shopee</a>
+                    `;
+                    resultados.appendChild(produto);
+                });
+
+            } catch (error) {
+                resultados.innerHTML = "Erro ao buscar produtos.";
+                console.error(error);
+            }
+        }
+    </script>
+
+</body>
+</html>
